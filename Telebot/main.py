@@ -1,6 +1,6 @@
 from telebot import TeleBot
 from config import BOT_TOKEN
-from user_service import SYSTEM_PROMPT, get_or_create_user, continue_dialog, start_new_dialog
+from user_service import SYSTEM_PROMPT
 from handlers import register_handlers
 from database_manager import DatabaseManager
 from flask import Flask, request, jsonify, send_from_directory

@@ -76,7 +76,7 @@ def add_user_message(session_id, user_message):
 
     messages.append({"role": "assistant", "content": ai_response})
 
-    keywords = ["карьерных трека", "треки", "трек", "**Трек" "рекомендации", "профессии", "варианты"]
+    keywords = ["карьерных трека", "треки", "трек", "**Трек","рекомендации", "профессии", "варианты"]
     has_track_structure = bool(re.search(r'(Трек\s*\d+|^\d+\.\s*).*\n.*описание', ai_response, re.MULTILINE | re.IGNORECASE))
     if any(keyword in ai_response.lower() for keyword in keywords ) or has_track_structure:
         tracks = extract_tracks_from_ai_response(ai_response)
@@ -84,7 +84,6 @@ def add_user_message(session_id, user_message):
 
         update_session_result(session_id, json.dumps(tracks, ensure_ascii=False), review)
         parent_code = generate_parent_code(session_id)
-
         update_session_status(session_id, 'completed')
 
         return messages, ai_response, tracks, review, parent_code
@@ -115,25 +114,46 @@ def extract_tracks_from_ai_response(text):
     if current_track and current_track['description'].strip():
         tracks.append(current_track)
 
-    return tracks if tracks else None
+    return tracks
 
 
 def extract_review_from_ai_response(text):
-    return text.split('\n')[-1] if text else ""
+    lines = text.strip().split('\n')
+    review_starters = [
+        "отзыв о скрытых способностях",
+        "твой потенциал",
+        "твои сильные стороны",
+        "уникальные качества",
+        "твои способности",
+        "твой профиль",
+        "анализ твоих качеств"
+    ]
+    
+    for i, line in enumerate(lines):
+        if any(starter in line.lower() for starter in review_starters):
+            return "\n".join(lines[i:]).strip()
+    return "\n".join(lines[-3:]).strip()
 
 def get_user_results(telegram_id):
     user = get_user_by_telegram_id(telegram_id)
     if not user:
         return None, None
-    session = get_active_session(user['id'])
-    if not session or not session['result_tracks']:
-        return None, None
-    try:
-        tracks = json.loads(session['result_tracks'])
-    except:
-        tracks = None
-    review = session['result_review'] or ""
-    return tracks, review
+    with db.connect() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT result_tracks, result_review FROM sessions
+            WHERE user_id = ? AND status = 'completed'
+            ORDER BY completed_at DESC LIMIT 1
+        ''', (user['id'],))
+        row = cursor.fetchone()
+        if not row:
+            return None, None
+        try:
+            tracks = json.loads(row['result_tracks']) if row['result_tracks'] else None
+        except:
+            tracks = None
+        review = row['result_review'] or ""
+        return tracks, review
 
 
 
