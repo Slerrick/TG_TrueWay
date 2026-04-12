@@ -19,19 +19,19 @@ class PDFGenerator:
     def add_title(self, text):
         self.pdf.set_font("DejaVu", "B", 20)
         self.pdf.set_text_color(47, 139, 87)
-        self.pdf.cell(0, 15, text=text, align='C')
+        self.pdf.cell(0, 15, text, align='C')
         self.pdf.ln(15)
 
     def add_subtitle(self, text):
         self.pdf.set_font("DejaVu", "B", 14)
         self.pdf.set_text_color(30, 58, 43)
-        self.pdf.cell(0, 10, text=text)
+        self.pdf.cell(0, 10, text)
         self.pdf.ln(8)
 
     def add_body(self, text):
         self.pdf.set_font("DejaVu", "", 11)
         self.pdf.set_text_color(0, 0, 0)
-        self.pdf.multi_cell(0, 7, text=text, align='L')
+        self.pdf.multi_cell(0, 7, text, align='L')
         self.pdf.ln(8)
 
     def generate_report(self, tracks, review, user_name="Ученик"):
