@@ -24,7 +24,7 @@ def ensure_certificate(hostname="ngw.devices.sberbank.ru", port=9443, cert_file=
     cert_path = os.path.join(os.path.dirname(__file__), cert_file)
 
     def download_cert():
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE
         context.options |= ssl.OP_NO_SSLv2
@@ -99,6 +99,8 @@ class SSLAdapter(HTTPAdapter):
 
     def init_poolmanager(self, *args, **kwargs):
         context = create_urllib3_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
         context.load_verify_locations(cafile=self.cert_path)
         kwargs['ssl_context'] = context
         return super().init_poolmanager(*args, **kwargs)
