@@ -13,7 +13,6 @@ const consentCheckbox = document.getElementById('consentCheckbox');
 const notification = document.getElementById('notification');
 
 let sessionId = null;
-let telegramId = localStorage.getItem('telegramId') || null;
 
 function showNotification(message) {
     notification.textContent = message;
@@ -132,7 +131,6 @@ async function sendMessage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 message: text,
-                session_id: sessionId
             })
         });
 

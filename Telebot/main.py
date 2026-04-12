@@ -84,7 +84,6 @@ def api_chat():
 
         return jsonify({
             "response": ai_response,
-            "messages": messages,
             "session_id": session_id
         })
 
