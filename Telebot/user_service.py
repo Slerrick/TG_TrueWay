@@ -6,7 +6,7 @@ from gigachat_client import get_ai_response
 SYSTEM_PROMPT = """Ты — профессиональный психолог-профориентолог. Веди дружескую беседу со школьником. Задавай вопросы по одному. 
 Узнай: имя, класс, город, профиль школы, интересы, хобби, любимые предметы, сильные стороны, участие в олимпиадах/проектах, 
 ценности в работе (доход, творчество, помощь людям, график, карьерный рост). Пиши, желательно, 2-3 предложениями. По завершении составь 2–3 карьерных трека и обязательно напиши слова "трек" или "треки" в своем ответе. 
-Каждый трек: название профессии, подробное описание (реальная суть работы), зарплата в городе ученика, ВУЗы для поступления, 
+Каждый трек: название профессии, подробное описание (реальная суть работы), зарплата в городе ученика, ВУЗы для поступления,
 средние проходные баллы по предметам (постарайся узнать точные данные о баллах), курсы/кружки для старта прямо сейчас. Также составь отзыв о скрытых способностях ученика."""
 
 def get_or_create_user(telegram_id):
@@ -32,10 +32,10 @@ def start_new_dialog(telegram_id):
     user = get_user_by_telegram_id(telegram_id)
     if not user:
         return None, "Пожалуйста, сначала зарегистрируйтесь (просто напишите /start)."
-
-    active = get_active_session(user['id'])
-    if active:
-        update_session_status(active['id'], 'paused')
+    
+    with db.connect() as conn:
+        conn.execute("UPDATE sessions SET status = 'aborted' WHERE user_id = ? AND status = 'active'", (user['id'],))
+        conn.commit()
 
     session_id = create_session(user['id'])
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -49,7 +49,7 @@ def continue_dialog(telegram_id):
         return None, None, "Пожалуйста, зарегистрируйтесь."
     session = get_active_session(user['id'])
     if not session:
-        return None, None, "У вас нет активного диалога. Начните новый с помощью /start или /continue."
+        return None, None, "У вас нет активного диалога. Начните новый с помощью /start."
     messages = json.loads(session['messages'])
     return session, messages, None
 
@@ -67,7 +67,7 @@ def add_user_message(session_id, user_message):
     messages.append({"role": "user", "content": user_message})
 
     if session['status'] == 'completed':
-        return messages, "Диалог завершён. Чтобы начать заново, нажмите /start.", None, None, None
+        return messages, "Давайте начнём сначала! Как вас зовут?", None, None, None
 
     try:
         ai_response = get_ai_response(messages)
@@ -78,7 +78,7 @@ def add_user_message(session_id, user_message):
 
     keywords = ["карьерных трека", "треки", "трек", "**Трек" "рекомендации", "профессии", "варианты"]
     has_track_structure = bool(re.search(r'(Трек\s*\d+|^\d+\.\s*).*\n.*описание', ai_response, re.MULTILINE | re.IGNORECASE))
-    if any(keyword in ai_response.lower() for keyword in keywords):
+    if any(keyword in ai_response.lower() for keyword in keywords ) or has_track_structure:
         tracks = extract_tracks_from_ai_response(ai_response)
         review = extract_review_from_ai_response(ai_response)
 

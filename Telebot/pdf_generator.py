@@ -19,7 +19,7 @@ class PDFGenerator:
     def add_title(self, text):
         self.pdf.set_font("DejaVu", "B", 20)
         self.pdf.set_text_color(47, 139, 87)
-        self.pdf.cell(0, 15, text, align='C')
+        self.pdf.cell(0, 15, text=text, align='C')
         self.pdf.ln(15)
 
     def add_subtitle(self, text):

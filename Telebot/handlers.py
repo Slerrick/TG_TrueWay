@@ -317,7 +317,7 @@ def register_handlers(bot: TeleBot):
             update_session_status(session['id'], 'paused')
             bot.send_message(
                 message.chat.id,
-                "Диалог сохранён. Для продолжения используйте /continue",
+                "Вы можете выйти и вернуться в любое время — диалог начнётся сначала.",
                 reply_markup=types.ReplyKeyboardRemove()
             )
             return
