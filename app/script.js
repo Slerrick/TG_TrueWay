@@ -130,14 +130,20 @@ async function sendMessage() {
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                message: text,
+                session_id: sessionId
+            })
         });
 
         const data = await response.json();
+        if (data.session_id && !sessionId) {
+            sessionId = data.session_id;
+        }
 
-        typeMessage(data.response || data.error, false);
+        addMessage(data.response || data.error, false);
     } catch (error) {
-        typeMessage("Ошибка подключения к серверу.", false);
+        addMessage("Ошибка подключения к серверу.", false);
         console.error(error);
     }
 }
