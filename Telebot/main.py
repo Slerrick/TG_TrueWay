@@ -1,6 +1,6 @@
 from telebot import TeleBot
 from config import BOT_TOKEN
-from user_service import SYSTEM_PROMPT
+from user_service import SYSTEM_PROMPT, extract_review_from_ai_response, extract_tracks_from_ai_response
 from handlers import register_handlers
 from database_manager import DatabaseManager
 from flask import Flask, request, jsonify, send_from_directory
@@ -33,7 +33,6 @@ def api_chat():
         user_message = data.get('message', '').strip()
         session_id = data.get('session_id')
 
-
         if not user_message:
             return jsonify({"error": "Пустое сообщение"}), 400
 
@@ -48,30 +47,38 @@ def api_chat():
                 ''', ('active', json.dumps([{"role": "system", "content": SYSTEM_PROMPT}]), 67676767))
                 session_id = cursor.lastrowid
                 conn.commit()
+
         with db.connect() as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT messages FROM sessions WHERE id = ?', (session_id,))
+            cursor.execute('SELECT messages, status FROM sessions WHERE id = ?', (session_id,))
             row = cursor.fetchone()
             if not row:
                 return jsonify({"error": "Сессия не найдена"}), 400
 
+            if row['status'] == 'completed':
+                return jsonify({"response": "Диалог завершён. Начните новый.", "session_id": session_id})
+
             messages = json.loads(row['messages'])
 
         messages.append({"role": "user", "content": user_message})
-
-        try:
-            ai_response = get_ai_response(messages)
-        except Exception as e:
-            ai_response = f"Ошибка ИИ: {e}"
-
+        ai_response = get_ai_response(messages)
         messages.append({"role": "assistant", "content": ai_response})
 
-        with db.connect() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                UPDATE sessions SET messages = ? WHERE id = ?
-            ''', (json.dumps(messages, ensure_ascii=False), session_id))
-            conn.commit()
+        if "✅ Вот твои карьерные треки!" in ai_response:
+            tracks = extract_tracks_from_ai_response(ai_response)
+            review = extract_review_from_ai_response(ai_response)
+            with db.connect() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    UPDATE sessions SET messages = ?, result_tracks = ?, result_review = ?, status = 'completed', completed_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                ''', (json.dumps(messages, ensure_ascii=False), json.dumps(tracks, ensure_ascii=False), review, session_id))
+                conn.commit()
+        else:
+            with db.connect() as conn:
+                cursor = conn.cursor()
+                cursor.execute('UPDATE sessions SET messages = ? WHERE id = ?', (json.dumps(messages, ensure_ascii=False), session_id))
+                conn.commit()
 
         return jsonify({
             "response": ai_response,

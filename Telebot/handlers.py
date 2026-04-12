@@ -348,7 +348,7 @@ def register_handlers(bot: TeleBot):
 
         bot.send_message(message.chat.id, response, reply_markup=during_dialog_keyboard())
 
-        if tracks:
+        if tracks is not None and isinstance(tracks, list) and len(tracks) > 0:
             from pdf_generator import PDFGenerator
             import os
             import re
