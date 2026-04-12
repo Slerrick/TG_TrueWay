@@ -13,7 +13,7 @@ def get_or_create_user(telegram_id):
     """Возвращает user_id и данные пользователя, при необходимости создаёт запись"""
     user = get_user_by_telegram_id(telegram_id)
     if not user:
-        user_id, login, password = create_user(telegram_id)
+        create_user(telegram_id)
         user = get_user_by_telegram_id(telegram_id)
     return user
 

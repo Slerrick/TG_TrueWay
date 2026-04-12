@@ -281,16 +281,25 @@ def register_handlers(bot: TeleBot):
     def handle_dialog(message):
         user = get_user_by_telegram_id(message.from_user.id)
         if not user:
-            bot.send_message(message.chat.id, "Пожалуйста, начните с /start.")
-            return
+            user = get_or_create_user(message.from_user.id)
+            if not user:
+                bot.send_message(message.chat.id, "❌ Не удалось зарегистрировать вас. Напишите /start.")
+                return
 
         session = get_active_session(user['id'])
         if not session:
-            if message.text not in ["⏸ Пауза", "🔄 Начать заново"]:
-                bot.send_message(message.chat.id, "У вас нет активного диалога. Начните новый с помощью /start.")
+            session_id, err = start_new_dialog(user['id'])
+            if err:
+                bot.send_message(message.chat.id, f"❌ Ошибка: {err}")
+                return
+            session = get_active_session(user['id'])
+            bot.send_message(
+            message.chat.id,
+            "Диалог начат! Как тебя зовут?",
+            reply_markup=during_dialog_keyboard()
+        )
             return
 
-        # Блокировка после завершения
         if session['status'] == 'completed':
             tracks, review = get_user_results(message.from_user.id)
             bot.send_message(
@@ -330,7 +339,6 @@ def register_handlers(bot: TeleBot):
             )
             return
 
-        # Основная логика
         result = add_user_message(session['id'], message.text)
         new_messages, response, tracks, review, parent_code = result
 
@@ -340,7 +348,6 @@ def register_handlers(bot: TeleBot):
 
         bot.send_message(message.chat.id, response, reply_markup=during_dialog_keyboard())
 
-        # Если треки готовы — завершаем
         if tracks:
             from pdf_generator import PDFGenerator
             import os
