@@ -1,6 +1,9 @@
+// Элементы интерфейса
 const chatMessages = document.getElementById('chat-messages');
 const userInput = document.getElementById('user-input');
 const sendButton = document.getElementById('send-btn');
+
+// Модальные окна
 const consentModal = document.getElementById('consentModal');
 const telegramModal = document.getElementById('telegramModal');
 const startButtons = document.querySelectorAll('.start-btn');
@@ -31,6 +34,7 @@ startButtons.forEach(btn => {
 closeConsentModal.addEventListener('click', () => {
     consentModal.style.display = 'none';
 });
+
 cancelConsentBtn.addEventListener('click', () => {
     consentModal.style.display = 'none';
     showNotification('Вы можете продолжить позже.');
@@ -48,6 +52,7 @@ proceedToTelegramBtn.addEventListener('click', () => {
 closeTelegramModal.addEventListener('click', () => {
     telegramModal.style.display = 'none';
 });
+
 closeTelegramModalBtn.addEventListener('click', () => {
     telegramModal.style.display = 'none';
 });
@@ -67,53 +72,6 @@ function animateOnScroll() {
 window.addEventListener('scroll', animateOnScroll);
 window.addEventListener('load', animateOnScroll);
 
-function typeMessage(text, isUser, callback) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = isUser ? 'message user' : 'message bot';
-    messageDiv.textContent = '';
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-    let i = 0;
-    const speed = 10;
-
-    function type() {
-        if (i < text.length) {
-            messageDiv.textContent += text.charAt(i);
-            i++;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            setTimeout(type, speed);
-        } else if (callback) {
-            callback();
-        }
-    }
-
-    type();
-}
-
-async function loadHistory() {
-    if (!sessionId) {
-        typeMessage("Привет! Я TrueWay — ИИ-профориентатор. А как зовут тебя?", false);
-        return;
-    }
-
-    try {
-        if (data.messages && Array.isArray(data.messages)) {
-            chatMessages.innerHTML = '';
-            data.messages.forEach(msg => {
-                if (msg.role !== 'system') {
-                    typeMessage(msg.content, msg.role === 'user');
-                }
-            });
-        } else {
-            typeMessage("Продолжим разговор?", false);
-        }
-    } catch (err) {
-        console.error("Не удалось загрузить историю", err);
-        typeMessage("Не удалось загрузить историю. Но можно продолжить.", false);
-    }
-}
-
 async function sendMessage() {
     const text = userInput.value.trim();
     if (!text) return;
@@ -122,27 +80,26 @@ async function sendMessage() {
     userInput.value = '';
 
     try {
-        const payload = { message: text };
-        if (sessionId) payload.session_id = sessionId;
-        if (telegramId) payload.telegram_id = telegramId;
-
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 message: text,
+                session_id: sessionId
             })
         });
 
         const data = await response.json();
+
         if (data.session_id && !sessionId) {
             sessionId = data.session_id;
         }
 
-        addMessage(data.response || data.error, false);
+        addMessage(data.response || data.error || "Неизвестная ошибка", false);
+
     } catch (error) {
-        addMessage("Ошибка подключения к серверу.", false);
-        console.error(error);
+        console.error("Ошибка сети:", error);
+        addMessage("❌ Ошибка подключения к серверу. Проверьте интернет.", false);
     }
 }
 
@@ -154,9 +111,16 @@ function addMessage(text, isUser) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+function loadInitialMessage() {
+
+    addMessage("Привет! Я TrueWay — ИИ-профориентатор. А как зовут тебя?", false);
+}
+
 sendButton.addEventListener('click', sendMessage);
 userInput.addEventListener('keypress', e => {
     if (e.key === 'Enter') sendMessage();
 });
 
-loadHistory();
+window.addEventListener('load', () => {
+    loadInitialMessage();
+});

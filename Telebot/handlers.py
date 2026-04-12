@@ -37,8 +37,6 @@ def register_handlers(bot: TeleBot):
         if err:
             bot.send_message(message.chat.id, err)
             return
-        last_msg = messages[-1]['content'] if messages else "Продолжим разговор."
-        bot.send_message(message.chat.id, last_msg, reply_markup=during_dialog_keyboard())
 
     @bot.message_handler(commands=['myresults'])
     def cmd_myresults(message):

@@ -32,21 +32,12 @@ def api_chat():
         data = request.get_json()
         user_message = data.get('message', '').strip()
         session_id = data.get('session_id')
-        telegram_id = data.get('telegram_id')
+
 
         if not user_message:
             return jsonify({"error": "Пустое сообщение"}), 400
 
         from gigachat_client import get_ai_response
-
-        if telegram_id:
-            user = get_or_create_user(telegram_id)
-            if not session_id:
-                session, _, _ = continue_dialog(telegram_id)
-                if not session:
-                    session_id, _ = start_new_dialog(telegram_id)
-                else:
-                    session_id = session['id']
 
         if not session_id:
             with db.connect() as conn:
@@ -54,7 +45,7 @@ def api_chat():
                 cursor.execute('''
                     INSERT INTO sessions (status, messages, telegram_id)
                     VALUES (?, ?, ?)
-                ''', ('active', json.dumps([{"role": "system", "content": SYSTEM_PROMPT}]), telegram_id))
+                ''', ('active', json.dumps([{"role": "system", "content": SYSTEM_PROMPT}]), 67676767))
                 session_id = cursor.lastrowid
                 conn.commit()
         with db.connect() as conn:
