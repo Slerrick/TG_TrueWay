@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>TrueWay — ИИ-профориентатор для школьников</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="navbar">
+            <div class="logo">TrueWay</div>
+            <div class="nav-links">
+                <a href="#servis">Сервис</a>
+                <a href="#how">Как работает</a>
+                <a href="#result">Что получишь</a>
+                <a href="#tracks">Пример треков</a>
+                <a href="#price">Цены</a>
+                <button class="btn-primary start-btn">Начать профориентацию</button>
+            </div>
+        </div>
+
+        <div class="hero" id="servis">
+            <div class="hero-text">
+                <h1>Найди свой настоящий путь</h1>
+                <p>ИИ-профориентатор с карьерными треками для школьников 8–11 классов. Живой диалог вместо формальных
+                    тестов — подробные описания профессий вместо стереотипов.</p>
+                </div>
+                <button class="btn-primary start-btn" style="padding: 14px 36px;">Начать профориентацию</button>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-number">3×</div>
+                        <div>дешевле консультантов</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">6</div>
+                        <div>научных методик</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">2–3</div>
+                        <div>карьерных трека</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div style="font-size: 48px;">🧠✨</div>
+                <p style="margin-top: 20px;"><strong>TrueWay AI</strong><br>Онлайн</p>
+                <div style="background:#eef5e9; border-radius: 60px; padding: 12px 16px; margin-top: 20px;">
+                TrueWay — помогу найти профессию мечты.
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Найди свой настоящий путь</h1>
+        <div id="chat-container">
+            <div id="chat-messages"></div>
+            <input type="text" id="user-input" class="btn-outline" placeholder="Расскажи о себе..." />
+            <button id="send-btn" class="btn-primary">Отправить</button>
+        </div>
+
+    <div class="container" id="how">
+        <section>
+            <h2 class="section-title">Почему школьникам нужен TrueWay</h2>
+            <div class="problem-solution">
+                <div class="problem-box animate-on-scroll">
+                    <h3>⚠️ Проблема</h3>
+                    <ul class="list-check">
+                        <li>47% школьников 8–10 классов не знают, какую профессию выбрать (ВЦИОМ, 2023)</li>
+                        <li>Стереотипы: «ты хорошо рисуешь — иди в дизайнеры»</li>
+                        <li>Советы родителей устарели на 20 лет</li>
+                        <li>Формальные тесты игнорируют личность ребёнка</li>
+                        <li>Рекомендуют умирающие профессии</li>
+                        <li>Разочарование после поступления в ВУЗ</li>
+                        <li>Зря потраченные 1–2 года и деньги семьи</li>
+                    </ul>
+                </div>
+                <div class="solution-box animate-on-scroll">
+                    <h3>✅ Решение — TrueWay</h3>
+                    <ul class="list-check">
+                        <li>2–3 карьерных трека, а не одна «правильная» профессия</li>
+                        <li>Подробные описания профессий без романтизации</li>
+                        <li>Подбор ВУЗов рядом с тобой</li>
+                        <li>Кружки и курсы для старта прямо сейчас</li>
+                        <li>Зарплаты: начальный → опытный специалист</li>
+                        <li>Перспективные и надёжные профессии будущего</li>
+                        <li>Email-отчёт для ученика и родителей</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="container">
+        <section>
+            <h2 class="section-title">Как это работает?</h2>
+            <p class="section-sub">Наш ИИ использует 6 научных методик, которыми пользуются профессиональные
+                профориентологи</p>
+            <div class="methods-grid">
+                <div class="method-card animate-on-scroll">
+                    <h4>📊 Модель Голланда</h4>
+                    <p>Мировой стандарт профессиональных типов (RIASEC)</p>
+                </div>
+                <div class="method-card animate-on-scroll">
+                    <h4>👥 Типология Климова</h4>
+                    <p>Российский стандарт: человек–техника, человек–человек и др.</p>
+                </div>
+                <div class="method-card animate-on-scroll">
+                    <h4>💎 Анализ ценностей и мотивации</h4>
+                    <p>Что для тебя важно: доход, творчество, помощь людям?</p>
+                </div>
+                <div class="method-card animate-on-scroll">
+                    <h4>🧠 Оценка личностных черт</h4>
+                    <p>Big Five — научная альтернатива MBTI</p>
+                </div>
+                <div class="method-card animate-on-scroll">
+                    <h4>⚡ Проверка способностей</h4>
+                    <p>Что легко даётся, олимпиады, проекты</p>
+                </div>
+                <div class="method-card animate-on-scroll">
+                    <h4>🎯 Тройная шкала</h4>
+                    <p>Совпадают ли «умею», «нравится» и «хочу»?</p>
+                </div>
+            </div>
+
+            <div class="steps">
+                <div class="step animate-on-scroll">
+                    <div class="step-number">1</div>
+                    <h4>Диалог с ИИ</h4>
+                    <p>Отвечаешь на вопросы в формате обычного чата</p>
+                </div>
+                <div class="step animate-on-scroll">
+                    <div class="step-number">2</div>
+                    <h4>Анализ</h4>
+                    <p>ИИ применяет все 6 методик к твоим ответам</p>
+                </div>
+                <div class="step animate-on-scroll">
+                    <div class="step-number">3</div>
+                    <h4>Карьерные треки</h4>
+                    <p>2–3 варианта: курсы → ВУЗ → профессия</p>
+                </div>
+                <div class="step animate-on-scroll">
+                    <div class="step-number">4</div>
+                    <h4>План действий</h4>
+                    <p>Конкретные шаги прямо сейчас</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="container" id="result">
+        <section>
+            <h2 class="section-title">Что ты получишь?</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: center;">
+                <div class="method-card animate-on-scroll" style="flex:1; min-width: 240px;"><strong>📄 Описание твоего
+                        профессионального типа</strong></div>
+                <div class="method-card animate-on-scroll" style="flex:1; min-width: 240px;"><strong>🔗 3 карьерных
+                        трека</strong><br>кластеры из 3–5 профессий каждый</div>
+                <div class="method-card animate-on-scroll" style="flex:1; min-width: 240px;"><strong>💰 Зарплаты в
+                        России</strong><br>начальная → опытный</div>
+                <div class="method-card animate-on-scroll" style="flex:1; min-width: 240px;"><strong>🏛️ ВУЗы рядом с
+                        тобой</strong><br>с проходными баллами</div>
+                <div class="method-card animate-on-scroll" style="flex:1; min-width: 240px;"><strong>📚 Предметы ЕГЭ/ОГЭ
+                        для каждого трека</strong></div>
+                <div class="method-card animate-on-scroll" style="flex:1; min-width: 240px;"><strong>📧 Email-отчёт и
+                        PDF</strong><br>для ученика и родителей</div>
+            </div>
+        </section>
+    </div>
+
+    <div class="container" id="tracks">
+        <section>
+            <h2 class="section-title">Пример карьерных треков</h2>
+            <p class="section-sub">Профиль: «Нравится рисовать и программировать»</p>
+            <div class="career-cards">
+                <div class="career-card animate-on-scroll">
+                    <div class="match">92% совпадение</div>
+                    <div class="career-title">Геймдизайнер</div>
+                    <p>Придумываем игровые механики, персонажей, уровни. Создаём игры, в которые влюбляются миллионы
+                        игроков.</p>
+                    <div class="salary">80 000 – 200 000 ₽</div>
+                    <div class="uni">ИТМО, НИУ ВШЭ (СПб)</div>
+                    <div class="course">Курс Unity на Stepik (бесплатно)</div>
+                </div>
+                <div class="career-card animate-on-scroll">
+                    <div class="match">87% совпадение</div>
+                    <div class="career-title">UX/UI Дизайнер</div>
+                    <p>Создаём удобные и красивые интерфейсы приложений и сайтов. Прототипируемся в Figma.</p>
+                    <div class="salary">70 000 – 180 000 ₽</div>
+                    <div class="uni">СПбГУ, Политех</div>
+                    <div class="course">Бесплатный курс Figma на figma.com</div>
+                </div>
+                <div class="career-card animate-on-scroll">
+                    <div class="match">81% совпадение</div>
+                    <div class="career-title">Фронтенд-разработчик</div>
+                    <p>Пишем код, который видят пользователи: интерфейсы сайтов и приложений на React.</p>
+                    <div class="salary">90 000 – 250 000 ₽</div>
+                    <div class="uni">ИТМО, Политех</div>
+                    <div class="course">freeCodeCamp (бесплатно)</div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn-primary start-btn">НАЧНИ ПРЯМО СЕЙЧАС — ЧЕРЕЗ TELEGRAM-БОТ</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="container" id="price">
+        <section>
+            <div class="benefits">
+                <div class="benefit animate-on-scroll">
+                    <div class="benefit-number">3×</div>
+                    <div>дешевле живых консультантов</div>
+                </div>
+                <div class="benefit animate-on-scroll">
+                    <div class="benefit-number">6</div>
+                    <div>научных методик</div>
+                </div>
+                <div class="benefit animate-on-scroll">
+                    <div class="benefit-number">2–3</div>
+                    <div>карьерных трека</div>
+                </div>
+            </div>
+            <div style="background: #eef5e9; border-radius: 40px; padding: 36px; text-align: center; margin: 40px 0;">
+                <h3 style="font-size: 28px;">Начать профориентацию</h3>
+                <p style="margin: 16px 0;">ИИ-профориентатор для школьников</p>
+                <button class="btn-primary start-btn" style="margin-top: 16px;">Попробовать бесплатно →</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>TrueWay</h4>
+                    <a href="#">Сервис</a>
+                    <a href="#">Как работает</a>
+                    <a href="#">Что получишь</a>
+                    <a href="#">Пример треков</a>
+                    <a href="#">Цены</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Компания</h4>
+                    <a href="#">О нас</a>
+                    <a href="#">Методология</a>
+                    <a href="#">Конфиденциальность</a>
+                    <a href="#">Условия</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Контакты</h4>
+                    <a href="#">📍 Санкт-Петербург</a>
+                    <a href="#">📧 trueway@mail.ru</a>
+                    <a href="#">💬 Вконтакте</a>
+                    <a href="#">👥 Телеграм</a>
+                </div>
+            </div>
+            <div class="copyright">
+                © 2026 TrueWay. Все права защищены. Сделано с ❤️ в Санкт-Петербурге
+            </div>
+        </div>
+    </div>
+
+    <div id="consentModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeConsentModal">&times;</button>
+            <h3>Согласие на обработку данных</h3>
+            <div class="consent-text">
+                <p>Перед началом профориентации нам необходимо ваше согласие на обработку персональных данных в
+                    соответствии с Федеральным законом № 152-ФЗ «О персональных данных».</p>
+                <p>Я даю своё согласие ООО «ТруВэй» на обработку следующих персональных данных:</p>
+                <ul style="margin-left: 20px; margin-bottom: 12px;">
+                    <li>Адрес электронной почты</li>
+                    <li>Имя и фамилия (по желанию)</li>
+                    <li>Данные об интересах и предпочтениях в образовании</li>
+                </ul>
+                <p>Обработка осуществляется в целях предоставления услуги карьерной профориентации. Данные не передаются
+                    третьим лицам без вашего согласия.</p>
+            </div>
+
+            <div class="consent-checkbox">
+                <input type="checkbox" id="consentCheckbox">
+                <label for="consentCheckbox">Я согласен(на) с условиями обработки персональных данных</label>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-secondary" id="cancelConsentBtn">Отмена</button>
+                <button class="btn-primary" id="proceedToTelegramBtn">Продолжить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="telegramModal" class="modal">
+        <div class="modal-content telegram-modal-content">
+            <button class="modal-close" id="closeTelegramModal">&times;</button>
+            <div class="telegram-icon">📱</div>
+            <h3>TrueWay</h3>
+            <p style="margin: 15px 0; font-size: 16px;">Профориентация доступна в Telegram</p>
+            <p style="color: #4a5568; margin-bottom: 20px;">На данный момент профориентация доступна на сайте или в нашем
+                Telegram-боте.<br>Нажмите на кнопку ниже, чтобы начать в Telegram.</p>
+            <a href="https://t.me/ItsTrueWay_bot" target="_blank" class="telegram-button">Открыть бот в Telegram</a>
+            <div class="bot-link">@ItsTrueWay_bot</div>
+            <button class="btn-secondary" id="closeTelegramModalBtn" style="margin-top: 10px;">Закрыть</button>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+    <script src="script.js"></script>
+</body>
+</html>

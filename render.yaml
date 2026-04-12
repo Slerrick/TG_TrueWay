@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: trueway-web
+    region: oregon
+    plan: free
+    env: python
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: BOT_TOKEN
+        sync: false
+      - key: GIGACHAT_AUTH_KEY
+        sync: false
+      - key: ADMIN_IDS
+        value: "5155181543"
+    healthCheckPath: /
