@@ -1,9 +1,8 @@
-// Элементы интерфейса
+// === ЭЛЕМЕНТЫ DOM ===
 const chatMessages = document.getElementById('chat-messages');
 const userInput = document.getElementById('user-input');
 const sendButton = document.getElementById('send-btn');
 
-// Модальные окна
 const consentModal = document.getElementById('consentModal');
 const telegramModal = document.getElementById('telegramModal');
 const startButtons = document.querySelectorAll('.start-btn');
@@ -49,28 +48,46 @@ proceedToTelegramBtn.addEventListener('click', () => {
     telegramModal.style.display = 'flex';
 });
 
-closeTelegramModal.addEventListener('click', () => {
+closeTelegramModal?.addEventListener('click', () => {
     telegramModal.style.display = 'none';
 });
 
-closeTelegramModalBtn.addEventListener('click', () => {
+closeTelegramModalBtn?.addEventListener('click', () => {
     telegramModal.style.display = 'none';
 });
 
-function animateOnScroll() {
-    const elements = document.querySelectorAll('.animate-on-scroll');
-    const windowHeight = window.innerHeight;
-
-    elements.forEach(el => {
-        const elementTop = el.getBoundingClientRect().top;
-        if (elementTop < windowHeight - 50) {
-            el.classList.add('visible');
+function initScrollAnimations() {
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
         }
+    );
+
+    document.querySelectorAll('.animate-on-scroll').forEach((el) => {
+        observer.observe(el);
     });
 }
 
-window.addEventListener('scroll', animateOnScroll);
-window.addEventListener('load', animateOnScroll);
+function addMessage(text, isUser) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = isUser ? 'message user' : 'message bot';
+    messageDiv.textContent = text;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function loadInitialMessage() {
+    addMessage("Привет! Я TrueWay — ИИ-профориентатор. А как зовут тебя?", false);
+}
 
 async function sendMessage() {
     const text = userInput.value.trim();
@@ -103,24 +120,12 @@ async function sendMessage() {
     }
 }
 
-function addMessage(text, isUser) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = isUser ? 'message user' : 'message bot';
-    messageDiv.textContent = text;
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function loadInitialMessage() {
-
-    addMessage("Привет! Я TrueWay — ИИ-профориентатор. А как зовут тебя?", false);
-}
-
-sendButton.addEventListener('click', sendMessage);
-userInput.addEventListener('keypress', e => {
+sendButton?.addEventListener('click', sendMessage);
+userInput?.addEventListener('keypress', e => {
     if (e.key === 'Enter') sendMessage();
 });
 
 window.addEventListener('load', () => {
     loadInitialMessage();
+    initScrollAnimations();
 });
