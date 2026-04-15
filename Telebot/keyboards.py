@@ -1,10 +1,10 @@
 from telebot import types
-from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton #ReplyKeyboardMarkup,
 
-def during_dialog_keyboard():
-    markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row("⏸ Пауза", "🔄 Начать заново")
-    return markup
+#def during_dialog_keyboard():
+#    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+#    markup.row("⏸ Пауза", "🔄 Начать заново")
+#    return markup
 
 def tracks_keyboard(n):
     markup = InlineKeyboardMarkup()
@@ -34,6 +34,7 @@ def after_payment_keyboard():
     markup.add(InlineKeyboardButton("🚀 Начать профориентацию", callback_data="start_session"))
     markup.add(InlineKeyboardButton("👤 Мои данные", callback_data="my_creds"))
     return markup
+
 def main_keyboard():
     """Стартовая клавиатура (Inline)"""
     keyboard = types.InlineKeyboardMarkup(row_width=2)

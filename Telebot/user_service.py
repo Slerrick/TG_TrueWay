@@ -81,8 +81,11 @@ def get_or_create_user(telegram_id):
     return user
 
 def check_paid(telegram_id):
-    user = get_user_by_telegram_id(telegram_id)
-    return user and user['paid'] == 1
+    with db.connect() as conn:
+        row = conn.execute(
+            'SELECT paid FROM users WHERE telegram_id = ?', (telegram_id,)
+        ).fetchone()
+        return row is not None and row['paid'] == 1
 
 def simulate_payment(telegram_id):
     """Искусственная оплата"""
@@ -94,7 +97,7 @@ def start_new_dialog(telegram_id):
     """Начинает новую активную сессию для пользователя"""
     user = get_user_by_telegram_id(telegram_id)
     if not user:
-        return None, "Пожалуйста, сначала зарегистрируйтесь (просто напишите /start)."
+        return None, "Пожалуйста, сначала зарегистрируйтесь."
     
     with db.connect() as conn:
         conn.execute("UPDATE sessions SET status = 'aborted' WHERE user_id = ? AND status = 'active'", (user['id'],))
@@ -104,17 +107,6 @@ def start_new_dialog(telegram_id):
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     update_session_messages(session_id, json.dumps(messages, ensure_ascii=False))
     return session_id, None
-
-def continue_dialog(telegram_id):
-    """Возвращает активную сессию и сообщения"""
-    user = get_user_by_telegram_id(telegram_id)
-    if not user:
-        return None, None, "Пожалуйста, зарегистрируйтесь."
-    session = get_active_session(user['id'])
-    if not session:
-        return None, None, "У вас нет активного диалога. Начните новый с помощью /start."
-    messages = json.loads(session['messages'])
-    return session, messages, None
 
 def add_user_message(session_id, user_message):
     session = get_session_by_id(session_id)

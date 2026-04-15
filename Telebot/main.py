@@ -32,6 +32,7 @@ def api_chat():
         data = request.get_json()
         user_message = data.get('message', '').strip()
         session_id = data.get('session_id')
+        telegram_id = data.get('telegram_id')
 
         if not user_message:
             return jsonify({"error": "Пустое сообщение"}), 400
@@ -41,16 +42,25 @@ def api_chat():
         if not session_id:
             with db.connect() as conn:
                 cursor = conn.cursor()
+                conn.execute("""
+                UPDATE sessions SET status = 'aborted'
+                WHERE telegram_id = ? AND status = 'active'
+                """, (telegram_id,))
+                conn.commit()
+
+                if not telegram_id:
+                    return jsonify({"error": "Требуется telegram_id для новой сессии"}), 400
+
                 cursor.execute('''
                     INSERT INTO sessions (status, messages, telegram_id)
                     VALUES (?, ?, ?)
-                ''', ('active', json.dumps([{"role": "system", "content": SYSTEM_PROMPT}]), 67676767))
+                ''', ('active', json.dumps([{"role": "system", "content": SYSTEM_PROMPT}], ensure_ascii=False), telegram_id))
                 session_id = cursor.lastrowid
                 conn.commit()
 
         with db.connect() as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT messages, status FROM sessions WHERE id = ?', (session_id,))
+            cursor.execute('SELECT messages, status, telegram_id FROM sessions WHERE id = ?', (session_id,))
             row = cursor.fetchone()
             if not row:
                 return jsonify({"error": "Сессия не найдена"}), 400
@@ -67,17 +77,25 @@ def api_chat():
         if "✅ Вот твои карьерные треки!" in ai_response:
             tracks = extract_tracks_from_ai_response(ai_response)
             review = extract_review_from_ai_response(ai_response)
+
             with db.connect() as conn:
-                cursor = conn.cursor()
-                cursor.execute('''
-                    UPDATE sessions SET messages = ?, result_tracks = ?, result_review = ?, status = 'completed', completed_at = CURRENT_TIMESTAMP
+                conn.execute('''
+                    UPDATE sessions 
+                    SET messages = ?, result_tracks = ?, result_review = ?, status = 'completed', completed_at = CURRENT_TIMESTAMP
                     WHERE id = ?
-                ''', (json.dumps(messages, ensure_ascii=False), json.dumps(tracks, ensure_ascii=False), review, session_id))
+                ''', (
+                    json.dumps(messages, ensure_ascii=False),
+                    json.dumps(tracks, ensure_ascii=False),
+                    review,
+                    session_id
+                ))
                 conn.commit()
         else:
             with db.connect() as conn:
-                cursor = conn.cursor()
-                cursor.execute('UPDATE sessions SET messages = ? WHERE id = ?', (json.dumps(messages, ensure_ascii=False), session_id))
+                conn.execute('UPDATE sessions SET messages = ? WHERE id = ?', (
+                    json.dumps(messages, ensure_ascii=False),
+                    session_id
+                ))
                 conn.commit()
 
         return jsonify({
@@ -86,7 +104,13 @@ def api_chat():
         })
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        if "401" in str(e) or "Unauthorized" in str(e) or "токен" in str(e).lower():
+            return jsonify({
+            "error": "Сессия истекла. Требуется обновление доступа к ИИ.",
+            "session_expired": True
+        }), 500
+        else:
+            return jsonify({"error": "Ошибка сервера. Попробуйте позже."}), 500
 
 @app.route('/')
 def index():

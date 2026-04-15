@@ -14,7 +14,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const consentCheckbox = document.getElementById('consentCheckbox');
     const notification = document.getElementById('notification');
 
-    let sessionId = null;
+       let sessionId = null;
+
+    function getTelegramId() {
+        if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+            return 'tg_' + window.Telegram.WebApp.initDataUnsafe.user.id;
+        }
+
+        const storedId = sessionStorage.getItem('web_anon_id');
+        if (storedId) {
+            return storedId;
+        }
+
+        const timestamp = new Date().getTime();
+        const random = Math.floor(Math.random() * 10000);
+        const anonId = 'web_' + timestamp.toString(36) + random.toString(36);
+
+        sessionStorage.setItem('web_anon_id', anonId);
+        return anonId;
+    }
+
+    const TELEGRAM_ID = getTelegramId();
 
     function showNotification(message) {
         if (!notification) return;
@@ -142,7 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: text,
-                    session_id: sessionId
+                    session_id: sessionId,
+                    telegram_id: TELEGRAM_ID
                 })
             });
 
@@ -154,16 +175,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionId = data.session_id;
             }
 
-            const botResponse = data.response || data.error || "Неизвестная ошибка";
-            addMessage(botResponse, false);
+            if (data.error) {
+                if (data.session_expired) {
+                    addMessage(
+                        "❌ Сессия с ИИ временно недоступна из-за обновления соединения.\n\n" +
+                        "Пожалуйста, начните диалог заново — нажмите кнопку ниже 👇",
+                        false
+                    );
+
+                    const restartBtn = document.createElement('button');
+                    restartBtn.className = 'restart-button';
+                    restartBtn.textContent = '🚀 Начать профориентацию заново';
+                    restartBtn.onclick = () => {
+                        sessionId = null;
+                        chatMessages.innerHTML = '';
+                        loadInitialMessage();
+                    };
+
+                    const btnWrapper = document.createElement('div');
+                    btnWrapper.style.textAlign = 'center';
+                    btnWrapper.style.marginTop = '10px';
+                    btnWrapper.appendChild(restartBtn);
+
+                    chatMessages.appendChild(btnWrapper);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                } else {
+                    addMessage("❌ " + data.error, false);
+                }
+            } else {
+                const botResponse = data.response || "Неизвестная ошибка";
+                addMessage(botResponse, false);
+            }
 
         } catch (error) {
             console.error("Ошибка сети:", error);
             removeTypingIndicator();
-            addMessage("❌ Ошибка подключения к серверу. Проверьте интернет.", false);
+
+            addMessage(
+                "🌐 Не удалось подключиться к серверу.\n\n" +
+                "Возможно, у вас нет интернета, или сервер временно недоступен.\n" +
+                "Попробуйте перезагрузить страницу через несколько минут.",
+                false
+            );
         }
     }
-
     sendButton?.addEventListener('click', sendMessage);
     userInput?.addEventListener('keypress', e => {
         if (e.key === 'Enter') sendMessage();

@@ -2,22 +2,21 @@ import json
 from telebot import TeleBot, types
 from config import ADMIN_IDS, HELP_TEXT, SUPPORT_LINK, INFO_TEXT, EXAMPLE_TRACK, WELCOME_TEXT
 from keyboards import (
-    main_keyboard, during_dialog_keyboard, tracks_keyboard,
+    main_keyboard, tracks_keyboard,
     info_keyboard, back_to_main_keyboard, admin_keyboard,
     parent_keyboard, after_payment_keyboard
 )
 from user_service import (
     get_or_create_user, check_paid, simulate_payment, get_user_by_telegram_id,
-    start_new_dialog, continue_dialog, add_user_message, get_user_results,
+    start_new_dialog, add_user_message, get_user_results,
     get_active_session, update_session_status, generate_parent_code, get_parent_report
 )
-from user_repository import get_all_users, get_statistics, get_user_by_login
+from user_repository import get_all_users, get_statistics, get_user_by_login, set_user_paid
 from database_manager import DatabaseManager
 from gigachat_client import get_ai_response
 
 db = DatabaseManager()
 
-# Словарь состояний (логин, пароль, родительский код и т.д.)
 user_states = {}
 
 
@@ -30,31 +29,6 @@ def register_handlers(bot: TeleBot):
     @bot.message_handler(commands=['help'])
     def cmd_help(message):
         bot.send_message(message.chat.id, HELP_TEXT)
-
-    @bot.message_handler(commands=['continue'])
-    def cmd_continue(message):
-        session, messages, err = continue_dialog(message.from_user.id)
-        if err:
-            bot.send_message(message.chat.id, err)
-            return
-
-    @bot.message_handler(commands=['myresults'])
-    def cmd_myresults(message):
-        tracks, review = get_user_results(message.from_user.id)
-        if not tracks:
-            bot.send_message(message.chat.id, "У вас пока нет завершённых профориентаций.")
-            return
-        for i, track in enumerate(tracks, 1):
-            bot.send_message(
-                message.chat.id,
-                f"**Трек {i}: {track.get('title')}**\n{track.get('description')[:300]}...",
-                parse_mode='Markdown'
-            )
-        bot.send_message(
-            message.chat.id,
-            f"**Отзыв о способностях:**\n{review}",
-            parse_mode='Markdown'
-        )
 
     @bot.message_handler(commands=['login'])
     def cmd_login(message):
@@ -76,7 +50,6 @@ def register_handlers(bot: TeleBot):
         else:
             bot.send_message(message.chat.id, "Нет доступа.")
 
-    # === Callback Handlers ===
     @bot.callback_query_handler(func=lambda call: True)
     def callback_handler(call):
         chat_id = call.message.chat.id
@@ -113,24 +86,59 @@ def register_handlers(bot: TeleBot):
                 if not check_paid(user_id):
                     bot.answer_callback_query(call.id, "Сначала оплатите доступ.", show_alert=True)
                     user = get_user_by_telegram_id(user_id)
+                    if user:
+                        bot.send_message(
+                            chat_id,
+                            f"🔐 Ваши данные для входа:\n"
+                            f"Логин: `{user['login']}`\n"
+                            f"Пароль: `{user['password']}`\n\n"
+                            f"Сохраните их — вы сможете продолжить с любого устройства.",
+                            parse_mode='Markdown'
+                        )
+                        return
                     bot.send_message(
-                chat_id,
-                f"🔐 Ваши данные для входа:\n"
-                f"Логин: `{user['login']}`\n"
-                f"Пароль: `{user['password']}`\n\n"
-                f"Сохраните их — вы сможете продолжить с любого устройства.",
-                parse_mode='Markdown')
+                        chat_id,
+                        "Привет! Я TrueWay — ИИ-профориентатор. А как зовут тебя?",
+                        parse_mode='Markdown'
+                        )
+                    return
+
                 session_id, err = start_new_dialog(user_id)
                 if err:
                     bot.send_message(chat_id, err)
                     return
-                bot.send_message(
+
+                msg = bot.send_message(
                     chat_id,
                     "Диалог начат! Как тебя зовут?",
-                    reply_markup=during_dialog_keyboard()
+                    reply_markup=back_to_main_keyboard()
                 )
+
+                user_states[chat_id] = {
+                    "last_markup": "back_to_main",
+                    "markup_message_id": msg.message_id
+                }
+
             elif call.data == "back_start":
-                bot.edit_message_text(WELCOME_TEXT, chat_id, call.message.message_id, reply_markup=main_keyboard())
+
+                try:
+                    bot.edit_message_reply_markup(
+                        chat_id=call.message.chat.id,
+                        message_id=call.message.message_id,
+                        reply_markup=None
+                    )
+                except:
+                    pass
+
+                msg = bot.send_message(
+                    chat_id,
+                    WELCOME_TEXT,
+                    reply_markup=main_keyboard()
+                )
+
+                if str(chat_id) in user_states:
+                    user_states.pop(str(chat_id), None)
+
             elif call.data == "my_creds":
                 user = get_user_by_telegram_id(user_id)
                 if user:
@@ -142,7 +150,12 @@ def register_handlers(bot: TeleBot):
                 else:
                     bot.send_message(chat_id, "Пользователь не найден.")
             elif call.data == "parent_mode":
-                bot.edit_message_text("Режим родителя. Введите код доступа:", chat_id, call.message.message_id, reply_markup=parent_keyboard())
+                bot.edit_message_text(
+                    "Режим родителя. Введите код доступа:",
+                    chat_id,
+                    call.message.message_id,
+                    reply_markup=parent_keyboard()
+                )
             elif call.data == "enter_code":
                 bot.send_message(chat_id, "Введите код доступа (6 цифр):")
                 user_states[chat_id] = {"state": "waiting_parent_code"}
@@ -210,7 +223,6 @@ def register_handlers(bot: TeleBot):
         finally:
             bot.answer_callback_query(call.id)
 
-    # === State Handlers ===
     @bot.message_handler(func=lambda m: user_states.get(m.chat.id, {}).get("state") == "waiting_login")
     def process_login_input(message):
         login = message.text.strip()
@@ -223,14 +235,38 @@ def register_handlers(bot: TeleBot):
         data = user_states.get(message.chat.id, {})
         login = data.get("login")
         password = message.text.strip()
+
+        if not login or not password:
+            bot.send_message(message.chat.id, "❌ Логин или пароль не указаны.")
+            user_states.pop(message.chat.id, None)
+            return
+
         user = get_user_by_login(login)
-        if user and user['password'] == password:
+        if not user:
+            bot.send_message(message.chat.id, "❌ Пользователь не найден.")
+            user_states.pop(message.chat.id, None)
+            return
+
+        if user['password'] != password:
+            bot.send_message(message.chat.id, "❌ Неверный пароль.")
+            user_states.pop(message.chat.id, None)
+            return
+
+        if not user['paid']:
+            set_user_paid(message.from_user.id)
+
+        try:
             with db.connect() as conn:
                 conn.execute('UPDATE users SET telegram_id = ? WHERE id = ?', (message.from_user.id, user['id']))
                 conn.commit()
-            bot.send_message(message.chat.id, "✅ Вход выполнен! Теперь вы можете начать профориентацию.")
-        else:
-            bot.send_message(message.chat.id, "❌ Неверный логин или пароль.")
+                bot.send_message(
+                message.chat.id,
+                "✅ Вход выполнен! Вы оплатили доступ.\n\n"
+                "Теперь вы можете начать профориентацию 👇",
+                reply_markup=main_keyboard())
+        except Exception as e:
+            bot.send_message(message.chat.id, f"❌ Ошибка при входе: {e}")
+
         user_states.pop(message.chat.id, None)
 
     @bot.message_handler(func=lambda m: user_states.get(m.chat.id, {}).get("state") == "waiting_parent_code")
@@ -279,74 +315,73 @@ def register_handlers(bot: TeleBot):
     # === Основной диалог ===
     @bot.message_handler(func=lambda m: True)
     def handle_dialog(message):
+        chat_id = message.chat.id
+
+        state = user_states.get(str(chat_id))
+        if state and state.get("last_markup") == "back_to_main" and "markup_message_id" in state:
+            try:
+                bot.edit_message_reply_markup(
+                    chat_id=chat_id,
+                    message_id=state["markup_message_id"],
+                    reply_markup=None
+                )
+            except Exception as e:
+                print(f"⚠️ Не удалось убрать клавиатуру: {e}")
+            user_states.pop(str(chat_id), None)
+
         user = get_user_by_telegram_id(message.from_user.id)
         if not user:
             user = get_or_create_user(message.from_user.id)
             if not user:
-                bot.send_message(message.chat.id, "❌ Не удалось зарегистрировать вас. Напишите /start.")
+                bot.send_message(chat_id, "❌ Не удалось зарегистрировать вас. Напишите /start.")
                 return
 
         session = get_active_session(user['id'])
         if not session:
             session_id, err = start_new_dialog(user['id'])
             if err:
-                bot.send_message(message.chat.id, f"❌ Ошибка: {err}")
+                bot.send_message(chat_id, f"❌ Ошибка: {err}")
                 return
             session = get_active_session(user['id'])
-            bot.send_message(
-            message.chat.id,
-            "Диалог начат! Как тебя зовут?",
-            reply_markup=during_dialog_keyboard()
-        )
+
+            msg = bot.send_message(
+                chat_id,
+                "Диалог начат! Как тебя зовут?",
+                reply_markup=back_to_main_keyboard()
+            )
+            user_states[chat_id] = {
+                "last_markup": "back_to_main",
+                "markup_message_id": msg.message_id
+            }
             return
 
         if session['status'] == 'completed':
             tracks, review = get_user_results(message.from_user.id)
-            bot.send_message(
-                message.chat.id,
-                "Диалог уже завершён. Вот ваши результаты:",
-                reply_markup=types.ReplyKeyboardRemove()
-            )
             if tracks:
                 for i, track in enumerate(tracks, 1):
                     bot.send_message(
-                        message.chat.id,
+                        chat_id,
                         f"**Трек {i}: {track.get('title')}**\n{track.get('description')[:300]}...",
                         parse_mode='Markdown'
                     )
-                bot.send_message(message.chat.id, "Выберите действие:", reply_markup=tracks_keyboard(len(tracks)))
+                bot.send_message(chat_id, "Выберите действие:", reply_markup=tracks_keyboard(len(tracks)))
             else:
-                bot.send_message(message.chat.id, "Данные не найдены. Обратитесь в поддержку.")
-            return
-
-        # Управляющие команды
-        if message.text == "⏸ Пауза":
-            update_session_status(session['id'], 'paused')
-            bot.send_message(
-                message.chat.id,
-                "Вы можете выйти и вернуться в любое время — диалог начнётся сначала.",
-                reply_markup=types.ReplyKeyboardRemove()
-            )
-            return
-
-        if message.text == "🔄 Начать заново":
-            update_session_status(session['id'], 'aborted')
-            start_new_dialog(message.from_user.id)
-            bot.send_message(
-                message.chat.id,
-                "Диалог начат заново. Как тебя зовут?",
-                reply_markup=during_dialog_keyboard()
-            )
+                bot.send_message(chat_id, "Данные не найдены. Обратитесь в поддержку.")
             return
 
         result = add_user_message(session['id'], message.text)
         new_messages, response, tracks, review, parent_code = result
 
         if not isinstance(new_messages, list):
-            bot.send_message(message.chat.id, "❌ Ошибка при обработке сообщения.")
+            bot.send_message(chat_id, "❌ Ошибка при обработке сообщения.")
             return
 
-        bot.send_message(message.chat.id, response, reply_markup=during_dialog_keyboard())
+        msg = bot.send_message(chat_id, response, reply_markup=back_to_main_keyboard())
+
+        user_states[chat_id] = {
+            "last_markup": "back_to_main",
+            "markup_message_id": msg.message_id
+        }
 
         if tracks is not None and isinstance(tracks, list) and len(tracks) > 0:
             from pdf_generator import PDFGenerator
@@ -361,12 +396,11 @@ def register_handlers(bot: TeleBot):
             tracks_count = len(tracks)
 
             bot.send_message(
-                message.chat.id,
+                chat_id,
                 "🎉 Диалог завершён! Готовлю ваш персональный отчёт…",
                 reply_markup=types.ReplyKeyboardRemove()
             )
 
-            # Генерация PDF
             try:
                 pdf_gen = PDFGenerator()
                 pdf_path = os.path.join(os.path.dirname(__file__), f"report_{message.from_user.id}.pdf")
@@ -375,23 +409,22 @@ def register_handlers(bot: TeleBot):
 
                 with open(pdf_path, 'rb') as pdf_file:
                     bot.send_document(
-                        message.chat.id,
+                        chat_id,
                         pdf_file,
                         caption="📄 Вот полный отчёт. Сохраните — он пригодится!"
                     )
-
-                os.remove(pdf_path)  # очистка
+                os.remove(pdf_path)
             except Exception as e:
-                bot.send_message(message.chat.id, f"⚠️ Не удалось создать PDF: {e}")
+                bot.send_message(chat_id, f"⚠️ Не удалось создать PDF: {e}")
 
-            # Кнопки и код
-            bot.send_message(message.chat.id, "Что дальше?", reply_markup=tracks_keyboard(tracks_count))
+            bot.send_message(chat_id, "Что дальше?", reply_markup=tracks_keyboard(tracks_count))
             if parent_code:
                 bot.send_message(
-                    message.chat.id,
+                    chat_id,
                     f"🔐 Код для родителей: `{parent_code}`",
                     parse_mode='Markdown'
                 )
 
-            # Финал: завершаем сессию
             update_session_status(session['id'], 'completed')
+
+    return bot

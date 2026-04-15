@@ -17,7 +17,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Улучшенные анимации */
 @keyframes fadeUp {
     from {
         opacity: 0;
@@ -59,7 +58,6 @@ body {
     padding: 0 24px;
 }
 
-/* Навигация */
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -139,7 +137,6 @@ body {
     width: 100%;
 }
 
-/* Кнопки */
 .btn-primary {
     background: linear-gradient(95deg, #1f6e43, #2e8b57);
     border: none;
@@ -198,7 +195,6 @@ body {
     box-shadow: 0 6px 16px rgba(46, 139, 87, 0.2);
 }
 
-/* Главный экран */
 .hero {
     display: flex;
     flex-wrap: wrap;
@@ -321,7 +317,6 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* Секции */
 section {
     padding: 90px 0;
     border-bottom: 1px solid #e0e8d6;
@@ -357,7 +352,6 @@ section {
     line-height: 1.6;
 }
 
-/* Проблема и решение */
 .problem-solution {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -385,7 +379,6 @@ section {
     transform: translateY(-4px);
 }
 
-/* Методы */
 .methods-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -433,7 +426,6 @@ section {
     font-weight: 600;
 }
 
-/* Шаги */
 .steps {
     display: flex;
     flex-wrap: wrap;
@@ -473,7 +465,6 @@ section {
     box-shadow: 0 4px 10px rgba(31, 110, 67, 0.3);
 }
 
-/* Карьерные карты */
 .career-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -542,7 +533,6 @@ section {
     margin-top: 10px;
 }
 
-/* Преимущества */
 .benefits {
     display: flex;
     flex-wrap: wrap;
@@ -572,7 +562,6 @@ section {
     line-height: 1;
 }
 
-/* Футер */
 .footer {
     background: #1f6e43;
     color: #f0f9ef;
@@ -615,7 +604,6 @@ section {
     color: #a8d8a0;
 }
 
-/* Модальные окна */
 .modal {
     display: none;
     position: fixed;
@@ -666,6 +654,24 @@ section {
     margin-bottom: 20px;
     color: #1f6e43;
     font-weight: 700;
+}
+
+.restart-button {
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(110, 142, 251, 0.3);
+}
+
+.restart-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(110, 142, 251, 0.4);
 }
 
 .consent-text {
@@ -771,7 +777,6 @@ section {
     box-shadow: 0 10px 24px rgba(46, 139, 87, 0.4);
 }
 
-/* Уведомление */
 .notification {
     position: fixed;
     bottom: 30px;
@@ -795,8 +800,6 @@ section {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
-
-/* Адаптив */
 @media (max-width: 768px) {
     .container {
         padding: 0 16px;

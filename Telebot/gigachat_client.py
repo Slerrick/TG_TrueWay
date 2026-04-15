@@ -115,9 +115,11 @@ class GigaChatClient:
         self.cert_path = ensure_certificate()
         self.session = requests.Session()
         self.session.verify = False
-        self.session.mount("https://", SSLAdapter(cert_path=self.cert_path))
 
     def _get_token(self):
+
+        self.cert_path = ensure_certificate()
+        self.session.mount("https://", SSLAdapter(cert_path=self.cert_path))
 
         if self.access_token and time.time() < self.token_expires_at - 60:
             return self.access_token
@@ -229,7 +231,8 @@ class GigaChatClient:
             response = self.session.post(
                 f"{self.base_url}/chat/completions",
                 headers=headers,
-                json=payload
+                json=payload,
+                timeout=15
             )
             response.raise_for_status()
             return response.json()["choices"][0]["message"]["content"]
